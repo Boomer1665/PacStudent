@@ -13,7 +13,7 @@ public class PacStudentController : MonoBehaviour
     private float startTime;
     private float duration;
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+   
     void Start()
     {
         transform.position = corners[0];
@@ -21,7 +21,7 @@ public class PacStudentController : MonoBehaviour
         BeginMove();
     }
 
-    // Update is called once per frame
+
     void Update() {
         float t = (Time.time - startTime) / duration;
         transform.position = Vector3.Lerp(startPos, endPos, t);
