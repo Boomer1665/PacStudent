@@ -5,7 +5,9 @@ public class PacStudentController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private AudioSource moveAudioSource;
     [SerializeField] private AudioSource pelletAudioSource;
+    [SerializeField] private AudioSource wallAudioSource;
     [SerializeField] private ParticleSystem dust;
+    [SerializeField] private ParticleSystem wallBump;
     [SerializeField] private float tilesPerSecond = 5f;
 
     // Top-left walkable tile
@@ -17,6 +19,7 @@ public class PacStudentController : MonoBehaviour
     private Vector2Int cell;       // grid cell we are on / left from
     private Vector2Int targetCell; // grid cell we are lerping to
     private bool lerping;
+    private bool bumped;           // true once the wall bump for this stop has played
     private float progress;        // 0 -> 1 across one tile
 
     void Awake()
@@ -43,7 +46,7 @@ public class PacStudentController : MonoBehaviour
 
         if (!lerping)
         {
-            SetMovingFeedback(false);
+            StopMoving();
             return;
         }
 
@@ -54,6 +57,7 @@ public class PacStudentController : MonoBehaviour
         {
             progress -= 1f;
             cell = targetCell;
+            Teleport();
             transform.position = CellToWorld(cell);
             LevelGrid.ClearPellet(cell);
             lerping = false;
@@ -61,8 +65,7 @@ public class PacStudentController : MonoBehaviour
             TryStartMove();
             if (!lerping)
             {
-                progress = 0f;
-                SetMovingFeedback(false);
+                StopMoving();
                 return;
             }
         }
@@ -97,10 +100,51 @@ public class PacStudentController : MonoBehaviour
     {
         targetCell = cell + dir;
         lerping = true;
+        bumped = false;
 
         PlayDirectionAnimation(dir);
         SetMovingFeedback(true);
         PlayMoveAudio(LevelGrid.HasPellet(targetCell));
+    }
+
+    // Reached the end of a tunnel: jump to the other side and keep moving inwards
+    void Teleport()
+    {
+        if (cell.x == LevelGrid.MinX && currentInput == Vector2Int.left)
+            cell = new Vector2Int(LevelGrid.MaxX, cell.y);
+        else if (cell.x == LevelGrid.MaxX && currentInput == Vector2Int.right)
+            cell = new Vector2Int(LevelGrid.MinX, cell.y);
+    }
+
+    void StopMoving()
+    {
+        progress = 0f;
+        SetMovingFeedback(false);
+
+        // First frame of being blocked after moving: play the bump once
+        if (!bumped && currentInput != Vector2Int.zero)
+        {
+            bumped = true;
+            PlayWallBump();
+        }
+    }
+
+    void PlayWallBump()
+    {
+        // The wall edge in the direction we were travelling
+        Vector3 point = CellToWorld(cell) + new Vector3(currentInput.x, currentInput.y, 0f) * 0.5f;
+
+        if (wallBump != null)
+        {
+            wallBump.transform.position = point;
+
+            // Aim the spray back away from the wall
+            Vector3 away = new Vector3(-currentInput.x, -currentInput.y, 0f);
+            wallBump.transform.rotation = Quaternion.LookRotation(away, Vector3.forward);
+
+            wallBump.Play();
+        }
+        if (wallAudioSource != null) wallAudioSource.Play();
     }
 
     void PlayDirectionAnimation(Vector2Int dir)
@@ -145,11 +189,6 @@ public class PacStudentController : MonoBehaviour
         }
     }
 
-    static Vector3 CellToWorld(Vector2Int c)
-    {
-        return new Vector3(c.x, c.y, 0f);
-    }
-    
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Pellet"))
@@ -157,5 +196,10 @@ public class PacStudentController : MonoBehaviour
             GameManager.Instance.AddScore(10);
             Destroy(other.gameObject);
         }
+    }
+
+    static Vector3 CellToWorld(Vector2Int c)
+    {
+        return new Vector3(c.x, c.y, 0f);
     }
 }

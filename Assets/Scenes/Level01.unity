@@ -32243,6 +32243,11 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.2
+--- !u!82 &937115315 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 9039702198180338373, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+  m_PrefabInstance: {fileID: 2475168984011467236}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &943661196
 GameObject:
   m_ObjectHideFlags: 0
@@ -55051,6 +55056,11 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.2
+--- !u!198 &1574165660 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 990683860463983350, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+  m_PrefabInstance: {fileID: 2475168984011467236}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1576326789
 GameObject:
   m_ObjectHideFlags: 0
@@ -71979,6 +71989,22 @@ PrefabInstance:
       propertyPath: Loop
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 990683860463983350, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: ShapeModule.type
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 990683860463983350, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: ShapeModule.angle
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 990683860463983350, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: ShapeModule.radius.value
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 990683860463983350, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: ShapeModule.radiusThickness
+      value: 1.0000
+      objectReference: {fileID: 0}
     - target: {fileID: 1739374681401951399, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7
@@ -72043,6 +72069,14 @@ PrefabInstance:
       propertyPath: dust
       value: 
       objectReference: {fileID: 929843808}
+    - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: wallBump
+      value: 
+      objectReference: {fileID: 1574165660}
+    - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: wallAudioSource
+      value: 
+      objectReference: {fileID: 937115315}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
