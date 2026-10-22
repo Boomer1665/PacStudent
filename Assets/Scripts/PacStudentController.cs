@@ -149,4 +149,13 @@ public class PacStudentController : MonoBehaviour
     {
         return new Vector3(c.x, c.y, 0f);
     }
+    
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Pellet"))
+        {
+            GameManager.Instance.AddScore(10);
+            Destroy(other.gameObject);
+        }
+    }
 }
