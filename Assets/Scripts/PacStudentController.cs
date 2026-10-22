@@ -4,57 +4,149 @@ public class PacStudentController : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     [SerializeField] private AudioSource moveAudioSource;
-    [SerializeField] private float moveSpeed = 3f;
-    [SerializeField] private Vector3[] corners;
+    [SerializeField] private AudioSource pelletAudioSource;
+    [SerializeField] private ParticleSystem dust;
+    [SerializeField] private float tilesPerSecond = 5f;
 
-    private int targetIndex;
-    private Vector3 startPos;
-    private Vector3 endPos;
-    private float startTime;
-    private float duration;
-    
-   
+    // Top-left walkable tile
+    private readonly Vector2Int startCell = new Vector2Int(-7, 1);
+
+    private Vector2Int lastInput = Vector2Int.zero;     // last key pressed, never cleared
+    private Vector2Int currentInput = Vector2Int.zero;  // direction we are actually moving in
+
+    private Vector2Int cell;       // grid cell we are on / left from
+    private Vector2Int targetCell; // grid cell we are lerping to
+    private bool lerping;
+    private float progress;        // 0 -> 1 across one tile
+
+    void Awake()
+    {
+        LevelGrid.Load();
+    }
+
     void Start()
     {
-        transform.position = corners[0];
-        targetIndex = 1;
-        BeginMove();
+        cell = startCell;
+        transform.position = CellToWorld(cell);
+        LevelGrid.ClearPellet(cell);
+
+        // Face right and wait for input
+        animator.Play("Vacuum_Right");
+        animator.speed = 0f;
     }
 
+    void Update()
+    {
+        ReadInput();
 
-    void Update() {
-        float t = (Time.time - startTime) / duration;
-        transform.position = Vector3.Lerp(startPos, endPos, t);
+        if (!lerping) TryStartMove();
 
-        if (t >= 1f) {
-            transform.position = endPos;
-            targetIndex = (targetIndex + 1) % corners.Length;
-            BeginMove();
+        if (!lerping)
+        {
+            SetMovingFeedback(false);
+            return;
+        }
+
+        progress += tilesPerSecond * Time.deltaTime;
+
+        // Carry leftover time into the next tile so speed stays exact at any frame rate
+        while (progress >= 1f)
+        {
+            progress -= 1f;
+            cell = targetCell;
+            transform.position = CellToWorld(cell);
+            LevelGrid.ClearPellet(cell);
+            lerping = false;
+
+            TryStartMove();
+            if (!lerping)
+            {
+                progress = 0f;
+                SetMovingFeedback(false);
+                return;
+            }
+        }
+
+        transform.position = Vector3.Lerp(CellToWorld(cell), CellToWorld(targetCell), progress);
+    }
+
+    void ReadInput()
+    {
+        if (Input.GetKeyDown(KeyCode.W)) lastInput = Vector2Int.up;
+        if (Input.GetKeyDown(KeyCode.A)) lastInput = Vector2Int.left;
+        if (Input.GetKeyDown(KeyCode.S)) lastInput = Vector2Int.down;
+        if (Input.GetKeyDown(KeyCode.D)) lastInput = Vector2Int.right;
+    }
+
+    // Only called when PacStudent is not lerping
+    void TryStartMove()
+    {
+        if (lastInput != Vector2Int.zero && LevelGrid.IsWalkable(cell + lastInput))
+        {
+            currentInput = lastInput;
+            StartLerp(currentInput);
+        }
+        else if (currentInput != Vector2Int.zero && LevelGrid.IsWalkable(cell + currentInput))
+        {
+            StartLerp(currentInput);
+        }
+        // otherwise do nothing: PacStudent stops
+    }
+
+    void StartLerp(Vector2Int dir)
+    {
+        targetCell = cell + dir;
+        lerping = true;
+
+        PlayDirectionAnimation(dir);
+        SetMovingFeedback(true);
+        PlayMoveAudio(LevelGrid.HasPellet(targetCell));
+    }
+
+    void PlayDirectionAnimation(Vector2Int dir)
+    {
+        string state = "Vacuum_Right";
+        if (dir == Vector2Int.left) state = "Vacuum_Left";
+        else if (dir == Vector2Int.up) state = "Vacuum_Up";
+        else if (dir == Vector2Int.down) state = "Vacuum_Down";
+
+        // Only restart the clip when the direction changes
+        if (!animator.GetCurrentAnimatorStateInfo(0).IsName(state))
+            animator.Play(state);
+    }
+
+    void PlayMoveAudio(bool pelletNext)
+    {
+        if (pelletNext)
+        {
+            // One sound per pellet, layered on top of each other
+            pelletAudioSource.PlayOneShot(pelletAudioSource.clip);
+
+            // Walking loop pauses while pellets are being eaten
+            if (moveAudioSource.isPlaying) moveAudioSource.Stop();
+        }
+        else
+        {
+            // Continuous walking loop, only started if not already playing
+            if (!moveAudioSource.isPlaying) moveAudioSource.Play();
         }
     }
 
-    void BeginMove() {
-        startPos = transform.position;
-        endPos = corners[targetIndex];
-        float distance = Vector3.Distance(startPos, endPos);
-        duration = distance / moveSpeed;
+    void SetMovingFeedback(bool moving)
+    {
+        animator.speed = moving ? 1f : 0f;
 
-        startTime = Time.time;
+        if (!moving && moveAudioSource.isPlaying) moveAudioSource.Stop();
 
-        if (!moveAudioSource.isPlaying) {
-            moveAudioSource.Play();
+        if (dust != null)
+        {
+            if (moving && !dust.isPlaying) dust.Play();
+            else if (!moving && dust.isPlaying) dust.Stop();
         }
+    }
 
-        Vector3 direction = (endPos - startPos);
-
-        if (direction.x > 0) {
-            animator.Play("Vacuum_Right");
-        } else if (direction.x < 0) {
-            animator.Play("Vacuum_Left");
-        } else if (direction.y > 0) {
-            animator.Play("Vacuum_Up");
-        } else if (direction.y < 0) {
-            animator.Play("Vacuum_Down");
-        }
+    static Vector3 CellToWorld(Vector2Int c)
+    {
+        return new Vector3(c.x, c.y, 0f);
     }
 }
