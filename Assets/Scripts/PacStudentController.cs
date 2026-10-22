@@ -6,6 +6,7 @@ public class PacStudentController : MonoBehaviour
     [SerializeField] private AudioSource moveAudioSource;
     [SerializeField] private AudioSource pelletAudioSource;
     [SerializeField] private AudioSource wallAudioSource;
+    [SerializeField] private AudioSource cherryAudioSource;
     [SerializeField] private ParticleSystem dust;
     [SerializeField] private ParticleSystem wallBump;
     [SerializeField] private float tilesPerSecond = 5f;
@@ -107,7 +108,7 @@ public class PacStudentController : MonoBehaviour
         PlayMoveAudio(LevelGrid.HasPellet(targetCell));
     }
 
-    // Reached the end of a tunnel: jump to the other side and keep moving inwards
+    // Laft - right tunnel teleporting
     void Teleport()
     {
         if (cell.x == LevelGrid.MinX && currentInput == Vector2Int.left)
@@ -121,7 +122,7 @@ public class PacStudentController : MonoBehaviour
         progress = 0f;
         SetMovingFeedback(false);
 
-        // First frame of being blocked after moving: play the bump once
+        // First frame of being blocked after moving play the bump once
         if (!bumped && currentInput != Vector2Int.zero)
         {
             bumped = true;
@@ -195,6 +196,25 @@ public class PacStudentController : MonoBehaviour
         {
             GameManager.Instance.AddScore(10);
             Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("PowerPellet"))
+        {
+            GameManager.Instance.AddScore(50);
+            Destroy(other.gameObject);
+            GameManager.Instance.StartScaredTimer();
+        }
+        else if (other.CompareTag("Cherry"))
+        {
+            GameManager.Instance.AddScore(100);
+            Destroy(other.gameObject);
+            if (cherryAudioSource != null) cherryAudioSource.Play();
+        }
+        else if (other.CompareTag("Ghost"))
+        {
+            GhostController ghost = other.GetComponent<GhostController>();
+            if (ghost.State == GhostState.Scared || ghost.State == GhostState.Recovering)
+                GameManager.Instance.EatGhost(ghost);
+            
         }
     }
 
