@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -11,6 +12,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private MusicManager music;
     [SerializeField] private AudioSource ghostEatAudio;
     [SerializeField] private GameObject[] lifeIndicators;   // the 3 life icons
+    [SerializeField] private GameObject overlayPanel;
+    [SerializeField] private TMP_Text overlayText;
+    [SerializeField] private TMP_Text timerText;
     [SerializeField] private float scaredDuration = 10f;
     [SerializeField] private float recoveringTime = 3f;   // Recovering starts with this many seconds left
 
@@ -20,9 +24,13 @@ public class GameManager : MonoBehaviour
     // Ghost movement scripts should check this and stand still while it is true
     public bool GhostsFrozen { get; set; }
 
+    // False during the countdown (and later at game over): nothing is allowed to move
+    public bool GameActive { get; private set; }
+
     private int score;
     private int lives = 3;
     private float scaredTimeLeft;
+    private float elapsedTime;
 
     void Awake()
     {
@@ -30,8 +38,46 @@ public class GameManager : MonoBehaviour
         UpdateScoreText();
     }
 
+    void Start()
+    {
+        StartCoroutine(RoundStart());
+    }
+
+    IEnumerator RoundStart()
+    {
+        GameActive = false;
+        timerText.text = FormatTime(0f);
+        overlayPanel.SetActive(true);
+        music.PlayIntro();
+
+        string[] steps = { "3", "2", "1", "GO!" };
+        foreach (string step in steps)
+        {
+            overlayText.text = step;
+            yield return new WaitForSeconds(1f);
+        }
+
+        overlayPanel.SetActive(false);
+        music.PlayNormal();
+        GameActive = true;
+    }
+
+    // mm:ss:cc where cc is hundredths of a second, e.g. 01:32:25
+    public static string FormatTime(float t)
+    {
+        int minutes = (int)(t / 60f);
+        int seconds = (int)(t % 60f);
+        int hundredths = (int)((t * 100f) % 100f);
+        return minutes.ToString("00") + ":" + seconds.ToString("00") + ":" + hundredths.ToString("00");
+    }
+
     void Update()
     {
+        if (!GameActive) return;
+
+        elapsedTime += Time.deltaTime;
+        timerText.text = FormatTime(elapsedTime);
+
         if (scaredTimeLeft <= 0f) return;
 
         scaredTimeLeft -= Time.deltaTime;

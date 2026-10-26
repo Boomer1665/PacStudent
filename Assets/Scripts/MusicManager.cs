@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class MusicManager : MonoBehaviour
 {
@@ -9,20 +8,11 @@ public class MusicManager : MonoBehaviour
     public AudioClip scaredClip;
     public AudioClip deadClip;
 
-    void Start()
-    {
-        StartCoroutine(PlayIntroThenNormal());
-    }
-
-    IEnumerator PlayIntroThenNormal()
+    public void PlayIntro()
     {
         musicSource.clip = introClip;
         musicSource.loop = false;
         musicSource.Play();
-
-        yield return new WaitForSeconds(3f);
-
-        PlayNormal();
     }
 
     public void PlayNormal() { Play(normalClip); }

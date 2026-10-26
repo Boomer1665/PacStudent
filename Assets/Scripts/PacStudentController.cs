@@ -45,7 +45,7 @@ public class PacStudentController : MonoBehaviour
 
     void Update()
     {
-        if (dead) return;
+        if (dead || !GameManager.Instance.GameActive) return;
 
         ReadInput();
 
@@ -198,7 +198,7 @@ public class PacStudentController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (dead) return;
+        if (dead || !GameManager.Instance.GameActive) return;
 
         if (other.CompareTag("Pellet"))
         {
