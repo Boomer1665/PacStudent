@@ -45,7 +45,14 @@ public class PacStudentController : MonoBehaviour
 
     void Update()
     {
-        if (dead || !GameManager.Instance.GameActive) return;
+        if (dead) return;
+
+        // Countdown or game over: stand still with no animation, sound or dust
+        if (!GameManager.Instance.GameActive)
+        {
+            SetMovingFeedback(false);
+            return;
+        }
 
         ReadInput();
 
@@ -204,12 +211,14 @@ public class PacStudentController : MonoBehaviour
         {
             GameManager.Instance.AddScore(10);
             Destroy(other.gameObject);
+            GameManager.Instance.PelletEaten();
         }
         else if (other.CompareTag("PowerPellet"))
         {
             GameManager.Instance.AddScore(50);
             Destroy(other.gameObject);
             GameManager.Instance.StartScaredTimer();
+            GameManager.Instance.PelletEaten();
         }
         else if (other.CompareTag("Cherry"))
         {
@@ -253,7 +262,11 @@ public class PacStudentController : MonoBehaviour
 
         yield return new WaitForSeconds(DeathAnimationLength());
 
-        if (outOfLives) yield break;   // game over is added in Stage 3
+        if (outOfLives)
+        {
+            GameManager.Instance.EndGame();
+            yield break;
+        }
 
         Respawn();
     }

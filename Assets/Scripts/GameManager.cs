@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -15,6 +16,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject overlayPanel;
     [SerializeField] private TMP_Text overlayText;
     [SerializeField] private TMP_Text timerText;
+    [SerializeField] private string levelKey = "Level1";   // used to save the high score
     [SerializeField] private float scaredDuration = 10f;
     [SerializeField] private float recoveringTime = 3f;   // Recovering starts with this many seconds left
 
@@ -26,11 +28,13 @@ public class GameManager : MonoBehaviour
 
     // False during the countdown (and later at game over): nothing is allowed to move
     public bool GameActive { get; private set; }
+    public bool GameOver { get; private set; }
 
     private int score;
     private int lives = 3;
     private float scaredTimeLeft;
     private float elapsedTime;
+    private int pelletsRemaining;
 
     void Awake()
     {
@@ -40,7 +44,35 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        pelletsRemaining = GameObject.FindGameObjectsWithTag("Pellet").Length
+                         + GameObject.FindGameObjectsWithTag("PowerPellet").Length;
         StartCoroutine(RoundStart());
+    }
+
+    // Called whenever a pellet or power pellet is eaten
+    public void PelletEaten()
+    {
+        pelletsRemaining--;
+        if (pelletsRemaining <= 0) EndGame();
+    }
+
+    public void EndGame()
+    {
+        if (GameOver) return;
+        GameOver = true;
+        GameActive = false;
+        StartCoroutine(GameOverRoutine());
+    }
+
+    IEnumerator GameOverRoutine()
+    {
+        overlayText.text = "GAME OVER";
+        overlayPanel.SetActive(true);
+
+        HighScores.TrySave(levelKey, score, elapsedTime);
+
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene("StartScene");
     }
 
     IEnumerator RoundStart()

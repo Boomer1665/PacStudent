@@ -39,7 +39,7 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    // PacStudent died: back to the starting spot in the Normal state
+    // PacStudent died, back to the starting spot in the Normal state
     public void ResetGhost()
     {
         if (deadRoutine != null) StopCoroutine(deadRoutine);

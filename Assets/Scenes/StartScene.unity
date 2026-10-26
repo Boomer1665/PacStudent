@@ -523,6 +523,7 @@ GameObject:
   - component: {fileID: 450119162}
   - component: {fileID: 450119164}
   - component: {fileID: 450119163}
+  - component: {fileID: 450119165}
   m_Layer: 5
   m_Name: Level2HighScoreText
   m_TagString: Untagged
@@ -569,7 +570,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "   High Score: 000000\n\r\n   Best Time: 00:00:00"
+  m_text: 'High Score: 000000
+
+    
+
+    Best Time: 00:00:00'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -603,7 +608,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -649,6 +654,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 450119161}
   m_CullTransparentMesh: 1
+--- !u!114 &450119165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 450119161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c57da20c78fcf27498897675da54c4c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighScoreDisplay
+  levelKey: Level2
 --- !u!1 &450407918
 GameObject:
   m_ObjectHideFlags: 0
@@ -1346,6 +1364,7 @@ GameObject:
   - component: {fileID: 1092892960}
   - component: {fileID: 1092892962}
   - component: {fileID: 1092892961}
+  - component: {fileID: 1092892963}
   m_Layer: 5
   m_Name: Level1HighScoreText
   m_TagString: Untagged
@@ -1392,7 +1411,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "   High Score: 000000\n\r\n   Best Time: 00:00:00"
+  m_text: 'High Score: 000000
+
+    
+
+    Best Time: 00:00:00'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1426,7 +1449,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1472,6 +1495,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1092892959}
   m_CullTransparentMesh: 1
+--- !u!114 &1092892963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1092892959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c57da20c78fcf27498897675da54c4c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighScoreDisplay
+  levelKey: Level1
 --- !u!1 &1214483263
 GameObject:
   m_ObjectHideFlags: 0

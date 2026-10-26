@@ -16,6 +16,8 @@ public class CherryController : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance.GameOver) return;
+
         // No cherry (never spawned, reached the end, or was eaten): wait, then spawn
         if (cherry == null)
         {
