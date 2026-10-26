@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PacStudentController : MonoBehaviour
@@ -7,8 +8,10 @@ public class PacStudentController : MonoBehaviour
     [SerializeField] private AudioSource pelletAudioSource;
     [SerializeField] private AudioSource wallAudioSource;
     [SerializeField] private AudioSource cherryAudioSource;
+    [SerializeField] private AudioSource deathAudioSource;
     [SerializeField] private ParticleSystem dust;
     [SerializeField] private ParticleSystem wallBump;
+    [SerializeField] private ParticleSystem deathEffect;
     [SerializeField] private float tilesPerSecond = 5f;
 
     // Top-left walkable tile
@@ -20,6 +23,7 @@ public class PacStudentController : MonoBehaviour
     private Vector2Int cell;       // grid cell we are on / left from
     private Vector2Int targetCell; // grid cell we are lerping to
     private bool lerping;
+    private bool dead;            // true during the death sequence
     private bool bumped;           // true once the wall bump for this stop has played
     private float progress;        // 0 -> 1 across one tile
 
@@ -41,6 +45,8 @@ public class PacStudentController : MonoBehaviour
 
     void Update()
     {
+        if (dead) return;
+
         ReadInput();
 
         if (!lerping) TryStartMove();
@@ -192,6 +198,8 @@ public class PacStudentController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (dead) return;
+
         if (other.CompareTag("Pellet"))
         {
             GameManager.Instance.AddScore(10);
@@ -214,8 +222,66 @@ public class PacStudentController : MonoBehaviour
             GhostController ghost = other.GetComponent<GhostController>();
             if (ghost.State == GhostState.Scared || ghost.State == GhostState.Recovering)
                 GameManager.Instance.EatGhost(ghost);
-            
+            else if (ghost.State == GhostState.Normal)
+                Die();
         }
+    }
+
+    void Die()
+    {
+        dead = true;
+        lerping = false;
+        StartCoroutine(DeathSequence());
+    }
+
+    IEnumerator DeathSequence()
+    {
+        bool outOfLives = GameManager.Instance.LoseLife();   // hides one life icon
+        GameManager.Instance.GhostsFrozen = true;
+
+        SetMovingFeedback(false);
+
+        if (deathEffect != null)
+        {
+            deathEffect.transform.position = transform.position;
+            deathEffect.Play();
+        }
+        if (deathAudioSource != null) deathAudioSource.Play();
+
+        animator.speed = 1f;
+        animator.Play("Vacuum_Dead");
+
+        yield return new WaitForSeconds(DeathAnimationLength());
+
+        if (outOfLives) yield break;   // game over is added in Stage 3
+
+        Respawn();
+    }
+
+    float DeathAnimationLength()
+    {
+        foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+            if (clip.name == "Vacuum_Dead") return clip.length;
+        return 1f;
+    }
+
+    void Respawn()
+    {
+        cell = startCell;
+        transform.position = CellToWorld(cell);
+
+        lastInput = Vector2Int.zero;
+        currentInput = Vector2Int.zero;
+        lerping = false;
+        bumped = false;
+        progress = 0f;
+
+        // Face right and wait for input, like at the start of the game
+        animator.Play("Vacuum_Right");
+        animator.speed = 0f;
+
+        GameManager.Instance.ResetGhosts();
+        dead = false;
     }
 
     static Vector3 CellToWorld(Vector2Int c)

@@ -10,13 +10,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GhostController[] ghosts;
     [SerializeField] private MusicManager music;
     [SerializeField] private AudioSource ghostEatAudio;
+    [SerializeField] private GameObject[] lifeIndicators;   // the 3 life icons
     [SerializeField] private float scaredDuration = 10f;
     [SerializeField] private float recoveringTime = 3f;   // Recovering starts with this many seconds left
 
     // What every non-dead ghost should currently be
     public GhostState GlobalGhostState { get; private set; } = GhostState.Normal;
 
+    // Ghost movement scripts should check this and stand still while it is true
+    public bool GhostsFrozen { get; set; }
+
     private int score;
+    private int lives = 3;
     private float scaredTimeLeft;
 
     void Awake()
@@ -71,6 +76,28 @@ public class GameManager : MonoBehaviour
         AddScore(300);
         if (ghostEatAudio != null) ghostEatAudio.Play();
         ghost.Eat();
+        UpdateMusic();
+    }
+
+    // Returns true when there are no lives left
+    public bool LoseLife()
+    {
+        lives--;
+        if (lives >= 0 && lives < lifeIndicators.Length)
+            lifeIndicators[lives].SetActive(false);
+        return lives <= 0;
+    }
+
+    // After PacStudent dies: every ghost back to its start, Normal, and the scared timer cleared
+    public void ResetGhosts()
+    {
+        scaredTimeLeft = 0f;
+        ghostTimerText.gameObject.SetActive(false);
+        GlobalGhostState = GhostState.Normal;
+
+        foreach (GhostController g in ghosts) g.ResetGhost();
+
+        GhostsFrozen = false;
         UpdateMusic();
     }
 

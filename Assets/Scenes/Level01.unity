@@ -60420,6 +60420,10 @@ MonoBehaviour:
   - {fileID: 948335708}
   music: {fileID: 1393105556}
   ghostEatAudio: {fileID: 167105408}
+  lifeIndicators:
+  - {fileID: 267218271}
+  - {fileID: 1242972887}
+  - {fileID: 95636014}
   scaredDuration: 10
   recoveringTime: 3
 --- !u!1 &1729618915
@@ -72413,9 +72417,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1574165660}
     - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: deathEffect
+      value: 
+      objectReference: {fileID: 2475168984011467240}
+    - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
       propertyPath: wallAudioSource
       value: 
       objectReference: {fileID: 937115315}
+    - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+      propertyPath: deathAudioSource
+      value: 
+      objectReference: {fileID: 2475168984011467241}
     - target: {fileID: 7755010263559840837, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
       propertyPath: cherryAudioSource
       value: 
@@ -72499,6 +72511,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!198 &2475168984011467240 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5924426472400476862, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+  m_PrefabInstance: {fileID: 2475168984011467236}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &2475168984011467241 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 1499573039308682580, guid: 5315c5fcf1fdce34db33e1d8ee2efb6c, type: 3}
+  m_PrefabInstance: {fileID: 2475168984011467236}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6112081944805433484
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -10,12 +10,14 @@ public class GhostController : MonoBehaviour
 
     private Animator animator;
     private Coroutine deadRoutine;
+    private Vector3 startPosition;
 
     public GhostState State { get; private set; } = GhostState.Normal;
 
     void Awake()
     {
         animator = GetComponent<Animator>();
+        startPosition = transform.position;
     }
 
     void Start()
@@ -35,6 +37,14 @@ public class GhostController : MonoBehaviour
             case GhostState.Recovering: animator.Play(Prefix + "Recovering"); break;
             case GhostState.Dead: animator.Play(Prefix + "Dead"); break;
         }
+    }
+
+    // PacStudent died: back to the starting spot in the Normal state
+    public void ResetGhost()
+    {
+        if (deadRoutine != null) StopCoroutine(deadRoutine);
+        transform.position = startPosition;
+        SetState(GhostState.Normal);
     }
 
     // PacStudent ate this ghost while it was Scared or Recovering
