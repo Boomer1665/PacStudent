@@ -1,22 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// fake pacstudent for training. walks towards random spots and sometimes runs from the ghost
+// fake pacstudent for training. goes for the nearest pellet and runs away when a ghost gets close
 public class PacBot : MonoBehaviour
 {
     [SerializeField] private TrainingArea area;
     [SerializeField] private float tilesPerSecond = 5f;
+    [SerializeField] private bool randomisePerEpisode = true;
     [SerializeField] [Range(0f, 1f)] private float smartness = 0.9f;   // how often it runs away
-    [SerializeField] private int fleeRange = 8;                        // how close the ghost has to be
+    [SerializeField] private int fleeRange = 8;                        // how close a ghost has to be
 
     private Vector2Int cell;
     private Vector2Int nextCell;
     private Vector2Int heading = Vector2Int.zero;
-    private Vector2Int goal;
+    private Vector2Int target;
 
     private bool placed;
     private bool moving;
-    private bool hasGoal;
+    private bool hasTarget;
     private float progress;
 
     public Vector2Int Heading { get { return heading; } }
@@ -28,9 +29,16 @@ public class PacBot : MonoBehaviour
         heading = Vector2Int.zero;
         progress = 0f;
         moving = false;
-        hasGoal = false;
+        hasTarget = false;
         placed = true;
         transform.position = new Vector3(c.x, c.y, 0f);
+
+        // a different kind of player every episode so the ghosts dont just learn one bot
+        if (randomisePerEpisode)
+        {
+            smartness = Random.Range(0.3f, 1f);
+            fleeRange = Random.Range(5, 11);
+        }
     }
 
     void Update()
@@ -47,6 +55,7 @@ public class PacBot : MonoBehaviour
             progress -= 1f;
             cell = nextCell;
             moving = false;
+            area.EatPellet(cell);
             ChooseMove();
         }
 
@@ -58,31 +67,34 @@ public class PacBot : MonoBehaviour
     {
         bool[] open = MazeUtil.OpenDirections(cell, heading);
 
-        int[,] fromGhost = MazeUtil.Distances(area.GhostCell);
-        int ghostDist = MazeUtil.Dist(fromGhost, cell);
+        int[,] fromGhosts = MazeUtil.Distances(area.GhostCells());
+        int ghostDist = MazeUtil.Dist(fromGhosts, cell);
 
-        int[,] scoreMap;
-        bool wantHigh;
+        int[,] scoreMap = null;
+        bool wantHigh = false;
 
         if (ghostDist <= fleeRange && Random.value < smartness)
         {
-            // ghost is close so run away from it
-            scoreMap = fromGhost;
+            // a ghost is close so run away from the nearest one
+            scoreMap = fromGhosts;
             wantHigh = true;
         }
         else
         {
-            // otherwise head for a random spot on the map
-            if (!hasGoal || cell == goal)
+            // otherwise go for the nearest pellet and stick with it until its eaten
+            if (!hasTarget || !area.HasPellet(target))
             {
-                goal = area.RandomCell();
-                hasGoal = true;
+                int[,] fromMe = MazeUtil.Distances(cell);
+                hasTarget = area.NearestPellet(fromMe, out target);
             }
-            scoreMap = MazeUtil.Distances(goal);
-            wantHigh = false;
+
+            if (hasTarget)
+            {
+                scoreMap = MazeUtil.Distances(target);
+            }
         }
 
-        // pick the best open direction, random if its a tie
+        // pick the best open direction, random if its a tie (or no goal at all)
         List<int> best = new List<int>();
         int bestScore = 0;
 
@@ -90,7 +102,8 @@ public class PacBot : MonoBehaviour
         {
             if (!open[i]) continue;
 
-            int s = MazeUtil.Dist(scoreMap, cell + MazeUtil.Dirs[i]);
+            int s = 0;
+            if (scoreMap != null) s = MazeUtil.Dist(scoreMap, cell + MazeUtil.Dirs[i]);
 
             if (best.Count == 0 || (wantHigh && s > bestScore) || (!wantHigh && s < bestScore))
             {

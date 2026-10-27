@@ -14,6 +14,8 @@ public class PacStudentController : MonoBehaviour
     [SerializeField] private ParticleSystem deathEffect;
     [SerializeField] private float tilesPerSecond = 5f;
     public float TilesPerSecond => tilesPerSecond;
+    public Vector2Int Cell => Vector2Int.RoundToInt(transform.position);
+    public Vector2Int Heading => currentInput;
 
     // Top-left walkable tile
     private readonly Vector2Int startCell = new Vector2Int(-7, 1);
@@ -122,7 +124,7 @@ public class PacStudentController : MonoBehaviour
         PlayMoveAudio(LevelGrid.HasPellet(targetCell));
     }
 
-    // Laft - right tunnel teleporting
+    // Reached the end of a tunnel: jump to the other side and keep moving inwards
     void Teleport()
     {
         if (cell.x == LevelGrid.MinX && currentInput == Vector2Int.left)
@@ -136,7 +138,7 @@ public class PacStudentController : MonoBehaviour
         progress = 0f;
         SetMovingFeedback(false);
 
-        // First frame of being blocked after moving play the bump once
+        // First frame of being blocked after moving: play the bump once
         if (!bumped && currentInput != Vector2Int.zero)
         {
             bumped = true;

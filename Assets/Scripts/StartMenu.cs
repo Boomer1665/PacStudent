@@ -7,10 +7,9 @@ public class StartMenu : MonoBehaviour
     {
         SceneManager.LoadScene("Scenes/Level01");
     }
-/*
+
     public void LoadLevel2()
     {
-        SceneManager.LoadScene("Scenes/Level02");
+        SceneManager.LoadScene("Scenes/InnovationScene");
     }
-*/
 }

@@ -110,3 +110,6 @@ InitTestScene*.unity*
 .idea/
 
 Training/results/
+
+Assets/ML-Agents/Timers/
+Assets/ML-Agents/Timers.meta

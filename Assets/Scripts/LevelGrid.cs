@@ -42,7 +42,7 @@ public static class LevelGrid
     };
 
     static int[,] map;
-    
+
     public static void Load()
     {
         map = (int[,])template.Clone();

@@ -20,14 +20,14 @@ public class GhostController : MonoBehaviour
 
     [SerializeField] private int ghostNumber = 1;
 
-    private static readonly Vector2Int[] dirs =
-        { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
     // Every tile + direction on the outside wall loop (ghost 4 use this)
     private static HashSet<(Vector2Int, Vector2Int)> outerWall;
 
     private Animator anim;
     private PacStudentController pac;
+    private GhostBrain brain;          // only on the smart ghosts (innovation scene)
+    private static readonly List<GhostController> all = new List<GhostController>();   // every ghost, so they can see each other
+    private bool waitingForBrain;
 
     private Vector3 startPos;
     private Vector2Int startCell;
@@ -57,11 +57,18 @@ public class GhostController : MonoBehaviour
     {
         anim.enabled = true;
         pac = FindAnyObjectByType<PacStudentController>();
+        brain = GetComponent<GhostBrain>();
+        all.Add(this);
 
         if (outerWall == null) FindOuterWall();
 
         SetupExit();
         SetState(GhostState.Normal);
+    }
+
+    void OnDestroy()
+    {
+        all.Remove(this);
     }
 
     void Update()
@@ -75,7 +82,18 @@ public class GhostController : MonoBehaviour
             return;
         }
 
+        // smart ghosts wait here until the brain has picked a direction
+        if (waitingForBrain)
+        {
+            if (!brain.HasAnswer) return;
+
+            waitingForBrain = false;
+            nextCell = cell + AvoidSameChoice(brain.Choice);
+            StartMove();
+        }
+
         if (!moving) PickNextMove();
+        if (waitingForBrain) return;
 
         progress += GetSpeed() * Time.deltaTime;
 
@@ -86,6 +104,7 @@ public class GhostController : MonoBehaviour
             cell = nextCell;
             transform.position = ToWorld(cell);
             PickNextMove();
+            if (waitingForBrain) return;
         }
 
         transform.position = Vector3.Lerp(ToWorld(cell), ToWorld(nextCell), progress);
@@ -102,6 +121,7 @@ public class GhostController : MonoBehaviour
     // Called when pacstudent eats the ghost
     public void Eat()
     {
+        waitingForBrain = false;
         moving = false;
         progress = 0f;
         inHouse = false;
@@ -111,6 +131,7 @@ public class GhostController : MonoBehaviour
     // called when pacstudent dies
     public void ResetGhost()
     {
+        waitingForBrain = false;
         transform.position = startPos;
         cell = startCell;
         moving = false;
@@ -188,7 +209,7 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    // -----Decision making-----
+    // ----- picking where to go -----
 
     void PickNextMove()
     {
@@ -199,11 +220,23 @@ public class GhostController : MonoBehaviour
             nextCell = exitPath[exitStep];
             exitStep++;
         }
+        else if (brain != null && brain.enabled && State == GhostState.Normal)
+        {
+            // smart ghost: ask the trained brain, it answers a moment later
+            waitingForBrain = true;
+            brain.Ask(cell, lastDir);
+            return;
+        }
         else
         {
             nextCell = cell + PickDirection();
         }
 
+        StartMove();
+    }
+
+    void StartMove()
+    {
         lastDir = nextCell - cell;
         moving = true;
 
@@ -214,6 +247,44 @@ public class GhostController : MonoBehaviour
             facing = newFacing;
             PlayAnim();
         }
+    }
+
+    // if another ghost on this tile already picked the same way, take the next best way instead
+    Vector2Int AvoidSameChoice(Vector2Int choice)
+    {
+        List<Vector2Int> claimed = new List<Vector2Int>();
+
+        foreach (GhostController other in all)
+        {
+            if (other == this || other.State != GhostState.Normal) continue;
+
+            if (other.moving && other.cell == cell && other.nextCell != other.cell)
+            {
+                claimed.Add(other.nextCell - other.cell);
+            }
+        }
+
+        if (!claimed.Contains(choice)) return choice;
+
+        // closest to pacstudent out of the open ways nobody else took
+        bool[] open = MazeUtil.OpenDirections(cell, lastDir);
+        int[,] toPac = MazeUtil.Distances(pac.Cell);
+        Vector2Int best = choice;
+        int bestScore = int.MaxValue;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (!open[i] || claimed.Contains(MazeUtil.Dirs[i])) continue;
+
+            int score = MazeUtil.Dist(toPac, cell + MazeUtil.Dirs[i]);
+            if (score < bestScore)
+            {
+                bestScore = score;
+                best = MazeUtil.Dirs[i];
+            }
+        }
+
+        return best;
     }
 
     Vector2Int PickDirection()
@@ -254,25 +325,20 @@ public class GhostController : MonoBehaviour
     // Directions the ghost can go, only turns around if dead end
     List<Vector2Int> GetOptions()
     {
+        bool[] open = MazeUtil.OpenDirections(cell, lastDir);
         List<Vector2Int> list = new List<Vector2Int>();
 
-        foreach (Vector2Int d in dirs)
+        for (int i = 0; i < 4; i++)
         {
-            if (d != -lastDir && GhostCanWalk(cell + d)) list.Add(d);
+            if (open[i]) list.Add(MazeUtil.Dirs[i]);
         }
 
-        if (list.Count == 0 && GhostCanWalk(cell - lastDir)) list.Add(-lastDir);
         if (list.Count == 0) list.Add(Vector2Int.zero);
 
         return list;
     }
 
-    // walls
-    // same as pacstudent but ghosts cant use the teleporter tiles
-    static bool GhostCanWalk(Vector2Int c)
-    {
-        return LevelGrid.IsWalkable(c) && c.x > LevelGrid.MinX && c.x < LevelGrid.MaxX;
-    }
+    // ----- the outside wall (ghost 4) -----
 
     // wall on the left: try left, then straight, then right, then back
     static Vector2Int LeftHand(Vector2Int pos, Vector2Int heading)
@@ -283,7 +349,7 @@ public class GhostController : MonoBehaviour
 
         foreach (Vector2Int d in order)
         {
-            if (GhostCanWalk(pos + d)) return d;
+            if (MazeUtil.CanWalk(pos + d)) return d;
         }
 
         return -heading;
@@ -304,7 +370,7 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    // helpers
+    // ----- small helpers -----
 
     static string DirName(Vector2Int d)
     {
