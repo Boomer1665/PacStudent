@@ -971,6 +971,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 019c718367bc70e44b375342c1167355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostController
+  ghostNumber: 3
 --- !u!1 &5896113978830501706
 GameObject:
   m_ObjectHideFlags: 0
@@ -1164,6 +1165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 019c718367bc70e44b375342c1167355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostController
+  ghostNumber: 2
 --- !u!1 &6212826403309317884
 GameObject:
   m_ObjectHideFlags: 0
@@ -1357,6 +1359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 019c718367bc70e44b375342c1167355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostController
+  ghostNumber: 1
 --- !u!1 &6308817988024357793
 GameObject:
   m_ObjectHideFlags: 0
@@ -1550,6 +1553,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 019c718367bc70e44b375342c1167355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostController
+  ghostNumber: 4
 --- !u!1 &8921622323682938278
 GameObject:
   m_ObjectHideFlags: 0

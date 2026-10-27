@@ -13,6 +13,7 @@ public class PacStudentController : MonoBehaviour
     [SerializeField] private ParticleSystem wallBump;
     [SerializeField] private ParticleSystem deathEffect;
     [SerializeField] private float tilesPerSecond = 5f;
+    public float TilesPerSecond => tilesPerSecond;
 
     // Top-left walkable tile
     private readonly Vector2Int startCell = new Vector2Int(-7, 1);
