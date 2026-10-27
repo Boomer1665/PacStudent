@@ -60504,6 +60504,7 @@ MonoBehaviour:
   overlayPanel: {fileID: 1065781886}
   overlayText: {fileID: 1969845842}
   timerText: {fileID: 605268022}
+  levelKey: Level1
   scaredDuration: 10
   recoveringTime: 3
 --- !u!1 &1729618915
