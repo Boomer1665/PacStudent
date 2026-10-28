@@ -19,7 +19,7 @@ public class GhostController : MonoBehaviour
     private const int BottomOutside = -15;
 
     [SerializeField] private int ghostNumber = 1;
-    [SerializeField] private int spreadRadius = 2;   // smart ghosts only: how close ghosts avoid picking the same tiles (-1 = off, 0 = same tile only)
+    [SerializeField] private int spreadRadius = 1;   // smart ghosts only: how close ghosts avoid picking the same tiles (-1 = off, 0 = same tile only)
 
     // Every tile + direction on the outside wall loop (ghost 4 use this)
     private static HashSet<(Vector2Int, Vector2Int)> outerWall;

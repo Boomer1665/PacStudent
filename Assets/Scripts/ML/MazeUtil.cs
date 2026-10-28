@@ -13,7 +13,7 @@ public static class MazeUtil
     public const int Height = 29;
     public const int FarAway = 60;
     public const int TotalPellets = 224;      // 220 pellets + 4 power pellets
-    public const int SpreadRadius = 2;        // ghosts this many steps apart (or closer) try not to pick the same tiles
+    public const int SpreadRadius = 1;        // ghosts this many steps apart (or closer) try not to pick the same tiles
 
     // same tiles pacstudent walks on but ghosts cant use the teleporter tiles
     public static bool CanWalk(Vector2Int c)
