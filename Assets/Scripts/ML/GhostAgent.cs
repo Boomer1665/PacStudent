@@ -145,41 +145,22 @@ public class GhostAgent : Agent
         waiting = false;
     }
 
-    // if another ghost on this tile already picked the same way, take the next best way instead
+    // same rule as in the real game: dont pick a tile a nearby ghost is on or heading to
     Vector2Int AvoidSameChoice(Vector2Int choice)
     {
+        int[,] fromMe = MazeUtil.Distances(cell);
         List<Vector2Int> claimed = new List<Vector2Int>();
 
         foreach (GhostAgent other in area.Ghosts)
         {
             if (other == this) continue;
+            if (MazeUtil.Dist(fromMe, other.cell) > MazeUtil.SpreadRadius) continue;
 
-            if (other.moving && other.cell == cell && other.nextCell != other.cell)
-            {
-                claimed.Add(other.nextCell - other.cell);
-            }
+            claimed.Add(other.cell);
+            if (other.moving) claimed.Add(other.nextCell);
         }
 
-        if (!claimed.Contains(choice)) return choice;
-
-        // closest to pacstudent out of the open ways nobody else took
-        bool[] open = MazeUtil.OpenDirections(cell, lastDir);
-        Vector2Int best = choice;
-        int bestScore = int.MaxValue;
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (!open[i] || claimed.Contains(MazeUtil.Dirs[i])) continue;
-
-            int score = MazeUtil.Dist(toPac, cell + MazeUtil.Dirs[i]);
-            if (score < bestScore)
-            {
-                bestScore = score;
-                best = MazeUtil.Dirs[i];
-            }
-        }
-
-        return best;
+        return MazeUtil.AvoidClaimed(cell, lastDir, choice, claimed, toPac);
     }
 
     // simple brains to test with and to compare the trained one against

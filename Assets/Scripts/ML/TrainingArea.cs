@@ -30,6 +30,7 @@ public class TrainingArea : MonoBehaviour
     private static float totalCatchTime;
     private static long stackSamples;
     private static long stackedGhosts;
+    private static long bunchedGhosts;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetTotals()
@@ -39,6 +40,7 @@ public class TrainingArea : MonoBehaviour
         totalCatchTime = 0f;
         stackSamples = 0;
         stackedGhosts = 0;
+        bunchedGhosts = 0;
     }
 
     public Vector2Int PacCell { get { return Vector2Int.RoundToInt(pac.transform.position); } }
@@ -219,28 +221,34 @@ public class TrainingArea : MonoBehaviour
         }
     }
 
-    // every frame: how many ghosts are on the same tile as another ghost
+    // every frame: how many ghosts are on the same tile as another ghost (stacked),
+    // and how many are within 2 tiles of another ghost (bunched up in a line)
     void CountStacking()
     {
         int sharing = 0;
+        int bunched = 0;
 
         for (int i = 0; i < ghosts.Length; i++)
         {
             Vector2Int a = Vector2Int.RoundToInt(ghosts[i].transform.position);
+            bool same = false;
+            bool close = false;
 
             for (int j = 0; j < ghosts.Length; j++)
             {
                 if (i == j) continue;
 
-                if (Vector2Int.RoundToInt(ghosts[j].transform.position) == a)
-                {
-                    sharing++;
-                    break;
-                }
+                Vector2Int b = Vector2Int.RoundToInt(ghosts[j].transform.position);
+                if (b == a) same = true;
+                if (Mathf.Abs(b.x - a.x) + Mathf.Abs(b.y - a.y) <= 2) close = true;
             }
+
+            if (same) sharing++;
+            if (close) bunched++;
         }
 
         stackedGhosts += sharing;
+        bunchedGhosts += bunched;
         stackSamples++;
     }
 
@@ -258,9 +266,11 @@ public class TrainingArea : MonoBehaviour
             float rate = totalCatches / (float)totalEpisodes;
             float mean = totalCatches > 0 ? totalCatchTime / totalCatches : 0f;
             float stacked = stackSamples > 0 ? stackedGhosts / (float)stackSamples : 0f;
+            float bunched = stackSamples > 0 ? bunchedGhosts / (float)stackSamples : 0f;
             Debug.Log("[test] episodes " + totalEpisodes + "  catch rate " + rate.ToString("0.00") +
                       "  mean time to catch " + mean.ToString("0.0") + "s" +
-                      "  ghosts stacked " + stacked.ToString("0.00") + " of 4");
+                      "  ghosts stacked " + stacked.ToString("0.00") + " of 4" +
+                      "  within 2 tiles " + bunched.ToString("0.00") + " of 4");
         }
     }
 }

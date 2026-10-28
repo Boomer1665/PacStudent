@@ -19,6 +19,7 @@ public class GhostController : MonoBehaviour
     private const int BottomOutside = -15;
 
     [SerializeField] private int ghostNumber = 1;
+    [SerializeField] private int spreadRadius = 2;   // smart ghosts only: how close ghosts avoid picking the same tiles (-1 = off, 0 = same tile only)
 
     // Every tile + direction on the outside wall loop (ghost 4 use this)
     private static HashSet<(Vector2Int, Vector2Int)> outerWall;
@@ -88,7 +89,7 @@ public class GhostController : MonoBehaviour
             if (!brain.HasAnswer) return;
 
             waitingForBrain = false;
-            nextCell = cell + AvoidSameChoice(brain.Choice);
+            nextCell = cell + (spreadRadius >= 0 ? AvoidSameChoice(brain.Choice) : brain.Choice);
             StartMove();
         }
 
@@ -249,42 +250,23 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    // if another ghost on this tile already picked the same way, take the next best way instead
+    // if the way the brain picked leads onto a tile that a nearby ghost is on or heading to,
+    // take the next best way instead, so the ghosts dont all follow each other in a line
     Vector2Int AvoidSameChoice(Vector2Int choice)
     {
+        int[,] fromMe = MazeUtil.Distances(cell);
         List<Vector2Int> claimed = new List<Vector2Int>();
 
         foreach (GhostController other in all)
         {
             if (other == this || other.State != GhostState.Normal) continue;
+            if (MazeUtil.Dist(fromMe, other.cell) > spreadRadius) continue;
 
-            if (other.moving && other.cell == cell && other.nextCell != other.cell)
-            {
-                claimed.Add(other.nextCell - other.cell);
-            }
+            claimed.Add(other.cell);
+            if (other.moving) claimed.Add(other.nextCell);
         }
 
-        if (!claimed.Contains(choice)) return choice;
-
-        // closest to pacstudent out of the open ways nobody else took
-        bool[] open = MazeUtil.OpenDirections(cell, lastDir);
-        int[,] toPac = MazeUtil.Distances(pac.Cell);
-        Vector2Int best = choice;
-        int bestScore = int.MaxValue;
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (!open[i] || claimed.Contains(MazeUtil.Dirs[i])) continue;
-
-            int score = MazeUtil.Dist(toPac, cell + MazeUtil.Dirs[i]);
-            if (score < bestScore)
-            {
-                bestScore = score;
-                best = MazeUtil.Dirs[i];
-            }
-        }
-
-        return best;
+        return MazeUtil.AvoidClaimed(cell, lastDir, choice, claimed, MazeUtil.Distances(pac.Cell));
     }
 
     Vector2Int PickDirection()

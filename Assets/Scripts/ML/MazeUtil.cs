@@ -13,6 +13,7 @@ public static class MazeUtil
     public const int Height = 29;
     public const int FarAway = 60;
     public const int TotalPellets = 224;      // 220 pellets + 4 power pellets
+    public const int SpreadRadius = 2;        // ghosts this many steps apart (or closer) try not to pick the same tiles
 
     // same tiles pacstudent walks on but ghosts cant use the teleporter tiles
     public static bool CanWalk(Vector2Int c)
@@ -226,6 +227,33 @@ public static class MazeUtil
         }
 
         return dir;
+    }
+
+    // if the way a ghost picked leads onto a tile that a nearby ghost is on (or heading to),
+    // take the next best open way that doesnt. if there isnt one it keeps its own pick
+    public static Vector2Int AvoidClaimed(Vector2Int cell, Vector2Int lastDir, Vector2Int choice,
+                                          List<Vector2Int> claimed, int[,] toPac)
+    {
+        if (!claimed.Contains(cell + choice)) return choice;
+
+        bool[] open = OpenDirections(cell, lastDir);
+        Vector2Int best = choice;
+        int bestScore = int.MaxValue;
+
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2Int next = cell + Dirs[i];
+            if (!open[i] || claimed.Contains(next)) continue;
+
+            int score = Dist(toPac, next);
+            if (score < bestScore)
+            {
+                bestScore = score;
+                best = Dirs[i];
+            }
+        }
+
+        return best;
     }
 
     // a few tiles ahead of pacstudent, stops at the first wall
