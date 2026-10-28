@@ -108,3 +108,8 @@ InitTestScene*.unity*
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
 .idea/
+
+Training/results/
+
+Assets/ML-Agents/Timers/
+Assets/ML-Agents/Timers.meta
